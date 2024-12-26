@@ -1,1 +1,4 @@
 project_id = "cmhaiycolbydemwnbfdm"
+
+[functions.analyze-token]
+verify_jwt = false

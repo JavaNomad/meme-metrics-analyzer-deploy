@@ -1,4 +1,5 @@
-import { serve } from "https://deno.fresh.dev/server/mod.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { OpenAI } from "https://deno.land/x/openai/mod.ts";
 
 const corsHeaders = {
@@ -17,8 +18,10 @@ serve(async (req) => {
     
     const openAI = new OpenAI(Deno.env.get('OPENAI_API_KEY')!);
     
+    console.log('Sending request to OpenAI with prompt:', prompt);
+    
     const completion = await openAI.createChatCompletion({
-      model: "gpt-4o-mini", // Explicitly set to gpt-4o-mini
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -34,6 +37,7 @@ serve(async (req) => {
     });
 
     const analysis = completion.choices[0]?.message?.content || 'Failed to generate analysis';
+    console.log('Generated analysis:', analysis);
 
     return new Response(
       JSON.stringify({ analysis }),
