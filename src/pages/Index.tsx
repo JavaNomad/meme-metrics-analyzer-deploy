@@ -10,6 +10,12 @@ interface TokenMetrics {
   liquidityConcentration: number;
   volumeLiquidityRatio: number;
   priceDeviation: number;
+  tokenName: string;
+  currentPrice: number;
+  highestVolumePair: {
+    pair: string;
+    volume: number;
+  };
 }
 
 const Index = () => {
@@ -41,6 +47,11 @@ const Index = () => {
       const totalBuys = basePairs.reduce((sum: number, pair: any) => sum + (pair.txns?.h24?.buys || 0), 0);
       const totalSells = basePairs.reduce((sum: number, pair: any) => sum + (pair.txns?.h24?.sells || 0), 0);
 
+      // Find pair with highest volume
+      const highestVolumePair = basePairs.reduce((highest: any, current: any) => {
+        return (current.volume?.h24 || 0) > (highest.volume?.h24 || 0) ? current : highest;
+      }, basePairs[0]);
+
       const calculatedMetrics = {
         buyPressureRatio: totalBuys / (totalSells || 1),
         liquidityConcentration: (mainPair.liquidity?.usd || 0) / (totalLiquidity || 1),
@@ -48,7 +59,13 @@ const Index = () => {
         priceDeviation: basePairs.length > 1 
           ? Math.max(...basePairs.map((p: any) => parseFloat(p.priceUsd || '0'))) / 
             Math.min(...basePairs.map((p: any) => parseFloat(p.priceUsd || '1'))) - 1
-          : 0
+          : 0,
+        tokenName: mainPair.baseToken.name || symbol,
+        currentPrice: parseFloat(mainPair.priceUsd || '0'),
+        highestVolumePair: {
+          pair: `${highestVolumePair.baseToken.symbol}/${highestVolumePair.quoteToken.symbol}`,
+          volume: highestVolumePair.volume?.h24 || 0
+        }
       };
 
       setMetrics(calculatedMetrics);
@@ -125,6 +142,18 @@ const Index = () => {
 
         {metrics && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricsCard
+              title="Token Info"
+              value={metrics.tokenName}
+              description={`$${metrics.currentPrice.toFixed(8)}`}
+              trend="neutral"
+            />
+            <MetricsCard
+              title="Highest Volume Pair"
+              value={metrics.highestVolumePair.pair}
+              description={`$${metrics.highestVolumePair.volume.toLocaleString()} (24h)`}
+              trend="neutral"
+            />
             <MetricsCard
               title="Buy/Sell Pressure"
               value={metrics.buyPressureRatio.toFixed(2)}
