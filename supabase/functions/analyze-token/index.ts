@@ -7,6 +7,7 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -17,7 +18,7 @@ serve(async (req) => {
     const openAI = new OpenAI(Deno.env.get('OPENAI_API_KEY')!);
     
     const completion = await openAI.createChatCompletion({
-      model: "gpt-4",
+      model: "gpt-4o-mini", // Explicitly set to gpt-4o-mini
       messages: [
         {
           role: "system",
@@ -41,9 +42,12 @@ serve(async (req) => {
       },
     );
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error in analyze-token function:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error instanceof Error ? error.message : 'An unknown error occurred',
+        details: error 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
