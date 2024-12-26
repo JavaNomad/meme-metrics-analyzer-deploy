@@ -41,8 +41,14 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricsCard
               title="Token Info"
-              value={metrics.tokenName}
+              value={`${metrics.tokenName} (${metrics.tokenSymbol})`}
               description={`$${metrics.currentPrice.toFixed(8)}`}
+              trend="neutral"
+            />
+            <MetricsCard
+              title="Token Address"
+              value={`${metrics.tokenAddress.slice(0, 6)}...${metrics.tokenAddress.slice(-4)}`}
+              description="Base Ecosystem Contract"
               trend="neutral"
             />
             <MetricsCard

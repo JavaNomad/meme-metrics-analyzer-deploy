@@ -8,6 +8,8 @@ interface TokenMetrics {
   volumeLiquidityRatio: number;
   priceDeviation: number;
   tokenName: string;
+  tokenSymbol: string;
+  tokenAddress: string;
   currentPrice: number;
   highestVolumePair: {
     pair: string;
@@ -58,6 +60,8 @@ export const useTokenAnalysis = () => {
             Math.min(...basePairs.map((p: any) => parseFloat(p.priceUsd || '1'))) - 1
           : 0,
         tokenName: mainPair.baseToken.name || symbol,
+        tokenSymbol: mainPair.baseToken.symbol,
+        tokenAddress: mainPair.baseToken.address,
         currentPrice: parseFloat(mainPair.priceUsd || '0'),
         highestVolumePair: {
           pair: `${highestVolumePair.baseToken.symbol}/${highestVolumePair.quoteToken.symbol}`,
