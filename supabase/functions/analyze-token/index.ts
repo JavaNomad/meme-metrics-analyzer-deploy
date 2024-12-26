@@ -1,6 +1,5 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { OpenAI } from "https://deno.land/x/openai/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,27 +15,40 @@ serve(async (req) => {
   try {
     const { prompt } = await req.json();
     
-    const openAI = new OpenAI(Deno.env.get('OPENAI_API_KEY')!);
+    console.log('Received prompt:', prompt);
     
-    console.log('Sending request to OpenAI with prompt:', prompt);
-    
-    const completion = await openAI.createChatCompletion({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "You are a cryptocurrency analyst specializing in meme tokens on the Base ecosystem. Provide detailed, professional analysis based on the provided metrics."
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      max_tokens: 1000,
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          {
+            role: "system",
+            content: "You are a cryptocurrency analyst specializing in meme tokens on the Base ecosystem. Provide detailed, professional analysis based on the provided metrics."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      }),
     });
 
-    const analysis = completion.choices[0]?.message?.content || 'Failed to generate analysis';
+    if (!response.ok) {
+      const error = await response.text();
+      console.error('OpenAI API error:', error);
+      throw new Error(`OpenAI API error: ${error}`);
+    }
+
+    const data = await response.json();
+    const analysis = data.choices[0]?.message?.content || 'Failed to generate analysis';
+    
     console.log('Generated analysis:', analysis);
 
     return new Response(
